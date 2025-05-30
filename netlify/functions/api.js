@@ -1,9 +1,9 @@
 const Hapi = require("@hapi/hapi");
 const Jwt = require("@hapi/jwt");
 const authRoutes = require("../../src/routes/auth");
-const articleRoute = require("../../src/routes/articles");
+const articleRoutes = require("../../src/routes/articles");
 const authMiddleware = require("../../src/middleware/authMiddleware");
-const sequelize = require("../../src/models/index");
+const sequelize = require("../../src/models");
 require("dotenv").config();
 
 let server;
@@ -11,7 +11,7 @@ let server;
 const init = async () => {
   if (!server) {
     server = Hapi.server({
-      port: 0, // port tidak penting untuk Netlify Function
+      port: 0,
       host: "localhost",
     });
 
@@ -20,9 +20,9 @@ const init = async () => {
     server.auth.default("jwt");
 
     server.route(authRoutes);
-    server.route(articleRoute);
+    server.route(articleRoutes);
 
-    await sequelize.sync(); // pastikan ini tidak menyebabkan overhead saat cold start
+    await sequelize.sync();
     await server.initialize();
   }
 
@@ -30,21 +30,20 @@ const init = async () => {
 };
 
 exports.handler = async (event, context) => {
-  const hapiServer = await init();
+  const server = await init();
 
   const { path, httpMethod, headers, body } = event;
-  const requestOptions = {
+
+  const response = await server.inject({
     method: httpMethod,
-    url: path,
+    url: path.replace("/api", ""),
     headers,
     payload: body,
-  };
-
-  const res = await hapiServer.inject(requestOptions);
+  });
 
   return {
-    statusCode: res.statusCode,
-    headers: res.headers,
-    body: res.payload,
+    statusCode: response.statusCode,
+    headers: response.headers,
+    body: response.payload,
   };
 };

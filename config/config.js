@@ -1,5 +1,4 @@
 require("dotenv").config();
-import pg from "pg";
 module.exports = {
   development: {
     username: process.env.DB_USER,
@@ -8,7 +7,6 @@ module.exports = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "postgres",
-    dialectModule: pg,
     dialectOptions: {
       ssl: {
         require: true,
@@ -35,7 +33,6 @@ module.exports = {
     database: "database_production",
     host: "127.0.0.1",
     dialect: "postgres",
-    dialectModule: pg,
     dialectOptions: {
       ssl: {
         require: true,
